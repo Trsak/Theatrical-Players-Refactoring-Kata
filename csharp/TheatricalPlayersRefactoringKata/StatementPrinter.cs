@@ -8,42 +8,52 @@ namespace TheatricalPlayersRefactoringKata
     {
         public string Print(Invoice invoice, Dictionary<string, Play> plays)
         {
-            var totalAmount = 0;
-            var volumeCredits = 0;
             var result = string.Format("Statement for {0}\n", invoice.Customer);
             var cultureInfo = new CultureInfo("en-US");
             var performanceResults = new Dictionary<Performance, decimal>();
 
-            foreach(var perf in invoice.Performances) 
+            var (totalAmount, volumeCredits) = CalculatePerformanceAmount(invoice, plays, performanceResults);
+
+            result += ConstructStringResult(performanceResults, plays);
+            result += string.Format(cultureInfo, "Amount owed is {0:C}\n", Convert.ToDecimal(totalAmount / 100));
+            result += string.Format("You earned {0} credits\n", volumeCredits);
+            return result;
+        }
+
+        private static Tuple<int, int> CalculatePerformanceAmount(Invoice invoice, Dictionary<string, Play> plays,
+            Dictionary<Performance, decimal> performanceResults)
+        {
+            var totalAmount = 0;
+            var volumeCredits = 0;
+            
+            foreach (var perf in invoice.Performances)
             {
                 var play = plays[perf.PlayID];
                 var thisAmount = 0;
-                switch (play.Type) 
+                switch (play.Type)
                 {
                     case "tragedy":
-                        thisAmount = CalculateAmount( 40000, perf.Audience, 30, 1000, 0);
+                        thisAmount = CalculateAmount(40000, perf.Audience, 30, 1000, 0);
                         break;
                     case "comedy":
-                        thisAmount = CalculateAmount( 30000, perf.Audience, 20, 500, 10000);
+                        thisAmount = CalculateAmount(30000, perf.Audience, 20, 500, 10000);
                         thisAmount += 300 * perf.Audience;
                         break;
                     default:
                         throw new Exception("unknown type: " + play.Type);
                 }
+
                 // add volume credits
                 volumeCredits += Math.Max(perf.Audience - 30, 0);
                 // add extra credit for every ten comedy attendees
-                if ("comedy" == play.Type) volumeCredits += (int)Math.Floor((decimal)perf.Audience / 5);
+                if ("comedy" == play.Type) volumeCredits += (int) Math.Floor((decimal) perf.Audience / 5);
 
                 performanceResults.Add(perf, Convert.ToDecimal(thisAmount / 100));
                 // print line for this order
-                
                 totalAmount += thisAmount;
             }
-            result += ConstructStringResult(performanceResults, plays);
-            result += string.Format(cultureInfo, "Amount owed is {0:C}\n", Convert.ToDecimal(totalAmount / 100));
-            result += string.Format("You earned {0} credits\n", volumeCredits);
-            return result;
+
+            return new Tuple<int, int>(totalAmount, volumeCredits);
         }
 
         private static string ConstructStringResult(Dictionary<Performance, decimal> performaceResults, Dictionary<string, Play> plays)
