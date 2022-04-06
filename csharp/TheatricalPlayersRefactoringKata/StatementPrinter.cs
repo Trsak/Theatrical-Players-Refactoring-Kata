@@ -8,16 +8,13 @@ namespace TheatricalPlayersRefactoringKata
     {
         public string Print(Invoice invoice, Dictionary<string, Play> plays)
         {
-            var result = string.Format("Statement for {0}\n", invoice.Customer);
             var cultureInfo = new CultureInfo("en-US");
             var performanceResults = new Dictionary<Performance, decimal>();
 
             var (totalAmount, volumeCredits) = CalculatePerformanceAmount(invoice, plays, performanceResults);
 
-            result += ConstructStringResult(performanceResults, plays);
-            result += string.Format(cultureInfo, "Amount owed is {0:C}\n", Convert.ToDecimal(totalAmount / 100));
-            result += string.Format("You earned {0} credits\n", volumeCredits);
-            return result;
+            
+            return ConstructStringResult(performanceResults, plays, invoice.Customer, totalAmount, volumeCredits);
         }
 
         private static Tuple<int, int> CalculatePerformanceAmount(Invoice invoice, Dictionary<string, Play> plays,
@@ -56,10 +53,10 @@ namespace TheatricalPlayersRefactoringKata
             return new Tuple<int, int>(totalAmount, volumeCredits);
         }
 
-        private static string ConstructStringResult(Dictionary<Performance, decimal> performaceResults, Dictionary<string, Play> plays)
+        private static string ConstructStringResult(Dictionary<Performance, decimal> performaceResults, Dictionary<string, Play> plays, String customer, decimal totalAmount, int volumeCredits)
         {
             var cultureInfo = new CultureInfo("en-US");
-            string result = string.Empty;
+            var result = string.Format("Statement for {0}\n", customer);
 
             foreach (var performance in performaceResults)
             {
@@ -67,6 +64,9 @@ namespace TheatricalPlayersRefactoringKata
 
                 result += string.Format(cultureInfo, "  {0}: {1:C} ({2} seats)\n", play.Name, performance.Value, performance.Key.Audience);
             }
+            
+            result += string.Format(cultureInfo, "Amount owed is {0:C}\n", Convert.ToDecimal(totalAmount / 100));
+            result += string.Format("You earned {0} credits\n", volumeCredits);
 
             return result;
         }
