@@ -12,7 +12,7 @@ namespace TheatricalPlayersRefactoringKata
             var volumeCredits = 0;
             var result = string.Format("Statement for {0}\n", invoice.Customer);
             var cultureInfo = new CultureInfo("en-US");
-            var performanceResults = new Dictionary<string, decimal>();
+            var performanceResults = new Dictionary<Performance, decimal>();
 
             foreach(var perf in invoice.Performances) 
             {
@@ -35,14 +35,29 @@ namespace TheatricalPlayersRefactoringKata
                 // add extra credit for every ten comedy attendees
                 if ("comedy" == play.Type) volumeCredits += (int)Math.Floor((decimal)perf.Audience / 5);
 
-                performanceResults.Add(perf.PlayID, Convert.ToDecimal(thisAmount / 100));
+                performanceResults.Add(perf, Convert.ToDecimal(thisAmount / 100));
                 // print line for this order
-                result += string.Format(cultureInfo, "  {0}: {1:C} ({2} seats)\n", play.Name, Convert.ToDecimal(thisAmount / 100), perf.Audience);
+                
                 totalAmount += thisAmount;
             }
-            
+            result += ConstructStringResult(performanceResults, plays);
             result += string.Format(cultureInfo, "Amount owed is {0:C}\n", Convert.ToDecimal(totalAmount / 100));
             result += string.Format("You earned {0} credits\n", volumeCredits);
+            return result;
+        }
+
+        private static string ConstructStringResult(Dictionary<Performance, decimal> performaceResults, Dictionary<string, Play> plays)
+        {
+            var cultureInfo = new CultureInfo("en-US");
+            string result = string.Empty;
+
+            foreach (var performance in performaceResults)
+            {
+                var play = plays[performance.Key.PlayID];
+
+                result += string.Format(cultureInfo, "  {0}: {1:C} ({2} seats)\n", play.Name, performance.Value, performance.Key.Audience);
+            }
+
             return result;
         }
 
