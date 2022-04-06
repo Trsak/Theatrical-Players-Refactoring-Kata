@@ -11,7 +11,7 @@ namespace TheatricalPlayersRefactoringKata
             var totalAmount = 0;
             var volumeCredits = 0;
             var result = string.Format("Statement for {0}\n", invoice.Customer);
-            CultureInfo cultureInfo = new CultureInfo("en-US");
+            var cultureInfo = new CultureInfo("en-US");
 
             foreach(var perf in invoice.Performances) 
             {
@@ -20,16 +20,10 @@ namespace TheatricalPlayersRefactoringKata
                 switch (play.Type) 
                 {
                     case "tragedy":
-                        thisAmount = 40000;
-                        if (perf.Audience > 30) {
-                            thisAmount += 1000 * (perf.Audience - 30);
-                        }
+                        thisAmount = CalculateAmount( 40000, perf.Audience, 30, 1000, 0);
                         break;
                     case "comedy":
-                        thisAmount = 30000;
-                        if (perf.Audience > 20) {
-                            thisAmount += 10000 + 500 * (perf.Audience - 20);
-                        }
+                        thisAmount = CalculateAmount( 30000, perf.Audience, 20, 500, 10000);
                         thisAmount += 300 * perf.Audience;
                         break;
                     default:
@@ -47,6 +41,17 @@ namespace TheatricalPlayersRefactoringKata
             result += string.Format(cultureInfo, "Amount owed is {0:C}\n", Convert.ToDecimal(totalAmount / 100));
             result += string.Format("You earned {0} credits\n", volumeCredits);
             return result;
+        }
+
+        private static int CalculateAmount(int thisAmount, int perfAudience, int audienceLimit, int baseAmount,
+            int addition)
+        {
+            if (perfAudience > audienceLimit)
+            {
+                thisAmount += addition + baseAmount * (perfAudience - audienceLimit);
+            }
+
+            return thisAmount;
         }
     }
 }
